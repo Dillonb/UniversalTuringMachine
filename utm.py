@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import json
 class UTM:
     dir_left = -1
