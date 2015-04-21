@@ -59,12 +59,12 @@ class UTM:
 
         for key in range(minHeadPos,maxHeadPos+1):
             if key == self.index:
-                print("%4s"%(self.state),end=" ")
+                print("%s"%(self.state),end=" ")
             if not key in self.tape:
                 if key != maxHeadPos:
                     print("null",end=" ")
             else:
-                print("%4s"%(self.tape[key]),end=" ")
+                print("%s"%(self.tape[key]),end=" ")
         print("")
 
     # Instr: a list of input characters
