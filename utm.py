@@ -9,7 +9,7 @@ class UTM:
     # Alphabet: a list containing all valid symbols
     # States: a list of states
     # A list of transitions as defined below
-    def __init__(self, input_alphabet=None, tape_alphabet=None, states=None, transitions=None, filename=None, blank_symbol=None, start_state=None):
+    def __init__(self, input_alphabet=None, tape_alphabet=None, states=None, transitions=None, filename=None, blank_symbol=None, start_state=None,output_mod=1):
         if filename is not None:
             f = open(filename)
             data = json.loads(f.read())
@@ -20,6 +20,7 @@ class UTM:
             blank_symbol = data['blank_symbol']
             start_state = data['start_state']
             halt_states = data['halt_states']
+            output_mod = data['output_mod']
 
         self.tape = {}
         self.input_alphabet = input_alphabet
@@ -28,6 +29,7 @@ class UTM:
         self.transitions = transitions
         self.blank_symbol = blank_symbol
         self.halt_states = halt_states
+        self.output_mod = output_mod
 
         self.state = start_state
         self.index = 0
@@ -89,10 +91,13 @@ class UTM:
 
         i = None
 
+        steps_taken = 0
+
         while self.state not in self.halt_states:
-            # Print the instantaneous description of the TM
-            self.clean_tape()
-            self.print_id()
+            # Print the instantaneous description of the TM, if necessary.
+            if not steps_taken % self.output_mod:
+                self.clean_tape()
+                self.print_id()
             #print(self.tape)
             #self.print_id(True)
 
@@ -108,6 +113,9 @@ class UTM:
             # Write the new symbol
             self.tape[self.index] = cur_transition[1]
 
+            steps_taken += 1
+            if not steps_taken % self.output_mod:
+                print("Steps:",steps_taken)
             # Should we halt?
             if cur_transition[0] == "HALT":
                 break
@@ -118,10 +126,12 @@ class UTM:
             # Move to the new state
             self.state = cur_transition[0]
 
+
         self.clean_tape()
         self.print_id()
-
+        print("Final total:",steps_taken, "steps.")
 files = [f for f in os.listdir('.') if os.path.isfile(f) and f[-3:] == ".tm"]
+files = sorted(files)
 
 for f in files:
     print("[",files.index(f) + 1, "]", f)

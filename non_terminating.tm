@@ -5,6 +5,7 @@
     "blank_symbol": "#",
     "start_state": "q0",
     "halt_states": ["q6"],
+    "output_mod": 1,
 
     "transitions": {
         "q0": {

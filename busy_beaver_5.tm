@@ -5,6 +5,7 @@
     "blank_symbol": "0",
     "start_state": "A",
     "halt_states": ["HALT"],
+    "output_mod": 100000,
 
     "transitions": {
         "A": {
