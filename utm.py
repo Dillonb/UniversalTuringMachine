@@ -2,6 +2,87 @@
 import json
 import os
 
+class Cell:
+    previous = None
+    next = None
+    data = None
+    index = None
+
+
+class Tape:
+    start = None
+    end = None
+
+    current_head = None
+
+    def get_new_cell(self,value=None):
+        c = Cell()
+        c.data = value
+        return c
+
+    def move_right(self):
+        if self.current_head.next is None:
+            self.append(None)
+        self.current_head = self.current_head.next
+
+
+    def move_left(self):
+        if self.current_head.previous == None:
+            self.prepend(None)
+        self.current_head = self.current_head.previous
+
+    def get_current_value(self):
+        if self.current_head is not None:
+            return self.current_head.data
+        else:
+            return None
+
+    def set_current_value(self,value):
+        if self.current_head is not None:
+            self.current_head.data = value
+        else:
+            # First value can be added with append function
+            self.append(value)
+
+    def append(self, value=None):
+        if self.start == None or self.end == None:
+            if self.start != self.end:
+                print("ERROR: Only start/only end is set to None. This should never happen.")
+            self.start = self.get_new_cell(value)
+            self.current_head = self.start
+            self.end = self.current_head
+            self.start.index = 0
+        else:
+            self.end.next = self.get_new_cell(value)
+            self.end.next.previous = self.end
+            self.end = self.end.next
+            self.end.index = self.end.previous.index + 1
+
+    def prepend(self, value=None):
+        if self.start == None or self.end == None:
+            if self.start != self.end:
+                print("ERROR: Only start/only end is set to None. This should never happen.")
+            self.start = self.get_new_cell(value)
+            self.current_head = self.start
+            self.end = current_head
+            self.start.index = 0
+        else:
+            self.start.previous = self.get_new_cell(value)
+            self.start.previous.next = self.start
+            self.start = self.start.previous
+            self.start.index = self.start.next.index - 1
+
+    def pop_end(self):
+        self.end = self.end.previous
+        self.end.next = None
+
+    def pop_start(self):
+        self.start = self.start.next
+        self.start.previous = None
+
+    def is_empty(self):
+        return self.start == None or self.end == None
+
 class UTM:
     dir_left = -1
     dir_right = 1
@@ -21,8 +102,9 @@ class UTM:
             start_state = data['start_state']
             halt_states = data['halt_states']
             output_mod = data['output_mod']
+            req_input = data['input']
 
-        self.tape = {}
+        self.tape = Tape()
         self.input_alphabet = input_alphabet
         self.tape_alphabet = tape_alphabet
         self.states = states
@@ -32,65 +114,42 @@ class UTM:
         self.output_mod = output_mod
 
         self.state = start_state
-        self.index = 0
 
     def clean_tape(self):
         """Removes all nulls from either end of the tape."""
 
+        # Don't need to clean an empty tape.
+        if self.tape.start == None or self.tape.end == None:
+            return
+
         # From beginning
-        for key in sorted(self.tape.keys()):
-            if self.tape[key] == self.blank_symbol or self.tape[key] == None:
-                if key < self.index:
-                    self.tape.pop(key,None)
-            else:
-                # Stop once we hit a non-null entry.
-                break
+        while (self.tape.start.data == None or self.tape.start.data == self.blank_symbol) and self.tape.start.index < self.tape.current_head.index:
+            self.tape.pop_start()
 
         # From end
-        for key in reversed(sorted(self.tape.keys())):
-            if self.tape[key] == self.blank_symbol or self.tape[key] == None:
-                if key > (self.index):
-                    self.tape.pop(key,None)
-            else:
-                # Stop once we hit a non-null entry
-                break
+        while (self.tape.end.data == None or self.tape.end.data == self.blank_symbol) and self.tape.end.index > self.tape.current_head.index:
+            self.tape.pop_end()
 
     def print_id(self,showIndexes=False):
-        if showIndexes:
-            print("Index: %i"%(self.index))
-        hitNotNull = False
-        printedState = False
+        iterator = self.tape.start
 
+        while iterator is not None:
+            if self.tape.current_head.index == iterator.index:
+                print("%s"%(self.state), end="")
 
-        if len(self.tape.keys()) > 0:
-            minHeadPos = self.index if self.index < min(self.tape.keys()) else min(self.tape.keys())
-            maxHeadPos = self.index if self.index > max(self.tape.keys()) else max(self.tape.keys())
-        else:
-            minHeadPos = self.index
-            maxHeadPos = self.index
+            print(iterator.data if iterator.data is not None else self.blank_symbol, end="")
 
-        for key in range(minHeadPos,maxHeadPos+1):
-            if key == self.index:
-                print("%s"%(self.state),end=" ")
-            if not key in self.tape:
-                if key != maxHeadPos:
-                    print(self.blank_symbol,end=" ")
-            else:
-                print("%s"%(self.tape[key]),end=" ")
+            iterator = iterator.next
+
         print("")
 
     # Instr: a list of input characters
     def processInput(self, inputstring):
-        i = 0
         for symbol in inputstring:
             if symbol not in self.input_alphabet:
                 print("Invalid input! %s is not in the input alphabet for this TM."%symbol)
                 return
-            self.tape[i] = symbol
-            i += 1
-
-        i = None
-
+            self.tape.append(symbol)
         steps_taken = 0
 
         while self.state not in self.halt_states:
@@ -98,20 +157,15 @@ class UTM:
             if not steps_taken % self.output_mod:
                 self.clean_tape()
                 self.print_id()
-            #print(self.tape)
-            #self.print_id(True)
 
-            try:
-                cur_char = str(self.tape[self.index])
-                if cur_char == None:
-                    cur_char = self.blank_symbol
-            except KeyError:
+            cur_char = self.tape.get_current_value()
+            if cur_char == None:
                 cur_char = self.blank_symbol
 
             cur_transition = self.transitions[self.state][cur_char]
 
             # Write the new symbol
-            self.tape[self.index] = cur_transition[1]
+            self.tape.set_current_value(cur_transition[1])
 
             steps_taken += 1
             if not steps_taken % self.output_mod:
@@ -120,8 +174,10 @@ class UTM:
             if cur_transition[0] == "HALT":
                 break
 
-            # Move along the tape in the correct direction
-            self.index += cur_transition[2]
+            if cur_transition[2] > 0:
+                self.tape.move_right()
+            else:
+                self.tape.move_left()
 
             # Move to the new state
             self.state = cur_transition[0]
