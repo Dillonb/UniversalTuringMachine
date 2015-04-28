@@ -102,7 +102,6 @@ class UTM:
             start_state = data['start_state']
             halt_states = data['halt_states']
             output_mod = data['output_mod']
-            req_input = data['input']
 
         self.tape = Tape()
         self.input_alphabet = input_alphabet
@@ -181,7 +180,6 @@ class UTM:
 
             # Move to the new state
             self.state = cur_transition[0]
-
 
         self.clean_tape()
         self.print_id()

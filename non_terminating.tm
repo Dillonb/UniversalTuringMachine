@@ -6,7 +6,6 @@
     "start_state": "q0",
     "halt_states": ["q6"],
     "output_mod": 1,
-    "input": true,
 
     "transitions": {
         "q0": {

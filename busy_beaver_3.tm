@@ -6,7 +6,6 @@
     "start_state": "A",
     "halt_states": ["HALT"],
     "output_mod": 1,
-    "input": false,
 
     "transitions": {
         "A": {
