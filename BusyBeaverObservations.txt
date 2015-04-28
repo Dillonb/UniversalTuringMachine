@@ -1,0 +1,8 @@
+Busy Beaver 3 runs almost instantly. Verified the number of steps it took with Wikipedia - correct.
+
+Busy Beaver 4 also runs almost instantly. Verified the number of steps it took with Wikipedia - correct.
+
+Busy Beaver 5 took about 60 seconds to run on my machine when I was using a dictionary to handle my tape. When I reimplemented the tape as a doubly-linked list, the time increased to 90 seconds. Also took the correct number of steps to finish.
+
+
+The running time of the busy beaver machines seems to increase at a rate much greater than exponential.
